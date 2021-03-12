@@ -1,5 +1,6 @@
 import tkinter as tk
 from random import shuffle
+from tkinter import messagebox
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -23,6 +24,13 @@ class Application(tk.Frame):
             num = int(self.numList[pos])
             self.numList[pos15], self.numList[pos] = self.numList[pos], self.numList[pos15]
             self.buttons[num].grid(row = 1 + row15, column = col15, sticky = "nsew")
+            win = True
+            for i in range(15):
+                if self.numList.index(i) != i:
+                    win = False
+            if win:
+                messagebox.showinfo(title = None, message = "YOU WIN!")
+                self.randHandler()
         
 
     def createWidgets(self):
