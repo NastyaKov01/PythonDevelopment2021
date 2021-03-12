@@ -4,7 +4,7 @@ from random import shuffle
 class Application(tk.Frame):
     def __init__(self, master=None):
         tk.Frame.__init__(self, master)
-        self.grid()
+        self.grid(sticky="nsew")
         self.createWidgets()
 
     def randHandler(self):
@@ -15,6 +15,22 @@ class Application(tk.Frame):
 
 
     def createWidgets(self):
+        toplevel = self.winfo_toplevel()
+        toplevel.rowconfigure(0, weight=1)
+        toplevel.columnconfigure(0, weight=1)
+
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+        self.columnconfigure(3, weight=1)
+        top = self.winfo_toplevel()
+        top.rowconfigure(0, weight=1)
+        top.columnconfigure(0, weight=1)
+
         self.numList, self.buttons = [], []
         self.quitButton = tk.Button(self, text = 'Quit', command = self.quit)
         self.newButton = tk.Button(self, text = 'New', command = self.randHandler)
@@ -25,8 +41,8 @@ class Application(tk.Frame):
             self.buttons.append(self.name)
         self.numList.append(15)
 
-        self.quitButton.grid(row = 0, column = 2, columnspan = 2)
-        self.newButton.grid(row = 0, column = 0, columnspan = 2)
+        self.quitButton.grid(row = 0, column = 2, columnspan = 2, sticky = "EW")
+        self.newButton.grid(row = 0, column = 0, columnspan = 2, sticky = "EW")
         self.randHandler()
 
 
