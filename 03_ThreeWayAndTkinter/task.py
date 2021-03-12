@@ -2,17 +2,36 @@ import tkinter as tk
 from random import shuffle
 from tkinter import messagebox
 
+
+def check(lst, pos, n):
+    res = 0
+    for i in range(pos, len(lst)):
+        if lst[i] < n:
+            res += 1
+    return res
+
+
 class Application(tk.Frame):
     def __init__(self, master=None):
         tk.Frame.__init__(self, master)
         self.grid(sticky = "nsew")
         self.createWidgets()
 
+
     def randHandler(self):
-        shuffle(self.numList)
+        checksum = 1
+        while checksum % 2 == 1:
+            shuffle(self.numList)
+            checksum = 0
+            for i in range(16):
+                if self.numList[i] != 15:
+                    checksum += check(self.numList, i, self.numList[i])
+            e = self.numList.index(15) // 4
+            checksum += e + 1
         for i in range(15):
             b, k = self.buttons[i], self.numList.index(i)
             b.grid(row = 1 + k//4, column = k%4, sticky = "nsew")
+
 
     def move(self, i):
         pos15 = self.numList.index(15)
