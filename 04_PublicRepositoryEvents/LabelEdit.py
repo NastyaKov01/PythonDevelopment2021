@@ -34,12 +34,18 @@ class InputLabel(tk.Label):
         self.focus()
         self.cursor_pos = 0
         self.cursor = tk.Frame(self, background="black", width=1)
-        self.print_cursor()
+        self.cursor.place(x = self.cursor_pos, y = 10)
         self.cursor.place(anchor=tk.CENTER, height=20)
         self.bind("<KeyPress>", self.button_clicked)
         self.bind("<Button-1>", self.mouse_clicked)
     
-    def print_cursor(self):
+    def print_cursor(self, change):
+        if change < 0 and self.cursor_pos > 0:
+            self.cursor_pos -= SYMBOL_SIZE
+        elif change > 0 and self.cursor_pos < len(self.text.get()) * SYMBOL_SIZE:
+            self.cursor_pos += SYMBOL_SIZE
+        elif change == 0:
+            self.cursor_pos = len(self.text.get()) * SYMBOL_SIZE
         self.cursor.place(x = self.cursor_pos, y = 10)
 
     def button_clicked(self, event):
@@ -53,23 +59,16 @@ class InputLabel(tk.Label):
             else:
                 newtext = text
             self.text.set(newtext)
-            if self.cursor_pos > 0:
-                self.cursor_pos -= SYMBOL_SIZE
-            self.print_cursor()
+            self.print_cursor(-1)
         elif event.keysym == "Left":
-            if self.cursor_pos > 0:
-                self.cursor_pos -= SYMBOL_SIZE
-            self.print_cursor()
+            self.print_cursor(-1)
         elif event.keysym == "Right":
-            if self.cursor_pos < len(self.text.get()) * SYMBOL_SIZE:
-                self.cursor_pos += SYMBOL_SIZE
-            self.print_cursor()
+            self.print_cursor(1)
         elif event.keysym == "Home":
             self.cursor_pos = 0
-            self.print_cursor()
+            self.cursor.place(x = 0, y = 10)
         elif event.keysym == "End":
-            self.cursor_pos = len(self.text.get()) * SYMBOL_SIZE
-            self.print_cursor()
+            self.print_cursor(0)
         elif event.char.isprintable():
             index = self.cursor_pos // SYMBOL_SIZE - 1
             newtext, text = "", self.text.get()
@@ -78,13 +77,12 @@ class InputLabel(tk.Label):
             else:
                 newtext = text[:index+1] + event.char + text[index+1:]
             self.text.set(newtext)
-            self.cursor_pos += SYMBOL_SIZE
-            self.print_cursor()
+            self.print_cursor(1)
 
     def mouse_clicked(self, event):
         self.focus()
         self.cursor_pos = event.x // SYMBOL_SIZE * SYMBOL_SIZE
-        self.print_cursor()
+        self.cursor.place(x = self.cursor_pos, y = 10)
 
 app = Application(title="InputLabel application")
 app.mainloop()
