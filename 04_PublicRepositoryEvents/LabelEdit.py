@@ -44,7 +44,15 @@ class InputLabel(tk.Label):
 
     def button_clicked(self, event):
         if event.keysym == "BackSpace":
-            self.text.set(self.text.get()[:-1])
+            index = self.cursor_pos // SYMBOL_SIZE - 1
+            newtext, text = "", self.text.get()
+            if index != len(text) and index >= 0:
+                newtext = text[:index] + text[index+1:]
+            elif index != -1:
+                newtext = text[:index]
+            else:
+                newtext = text
+            self.text.set(newtext)
             if self.cursor_pos > 0:
                 self.cursor_pos -= SYMBOL_SIZE
             self.print_cursor()
@@ -63,7 +71,13 @@ class InputLabel(tk.Label):
             self.cursor_pos = len(self.text.get()) * SYMBOL_SIZE
             self.print_cursor()
         elif event.char.isprintable():
-            self.text.set(self.text.get() + event.char)
+            index = self.cursor_pos // SYMBOL_SIZE - 1
+            newtext, text = "", self.text.get()
+            if index == len(text): 
+                newtext = text + event.char
+            else:
+                newtext = text[:index+1] + event.char + text[index+1:]
+            self.text.set(newtext)
             self.cursor_pos += SYMBOL_SIZE
             self.print_cursor()
 
@@ -72,5 +86,5 @@ class InputLabel(tk.Label):
         self.cursor_pos = event.x // SYMBOL_SIZE * SYMBOL_SIZE
         self.print_cursor()
 
-app = Application(title="Sample application")
+app = Application(title="InputLabel application")
 app.mainloop()
