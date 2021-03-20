@@ -83,9 +83,8 @@ class InputLabel(tk.Label):
         self.focus()
         self.cursor_pos = event.x // SYMBOL_SIZE * SYMBOL_SIZE
         if self.cursor_pos > len(self.text.get()) * SYMBOL_SIZE:
-            self.cursor.place(x = len(self.text.get()) * SYMBOL_SIZE)
-        else:
-            self.cursor.place(x = self.cursor_pos, y = 10)
+            self.cursor_pos = len(self.text.get()) * SYMBOL_SIZE
+        self.cursor.place(x = self.cursor_pos, y = 10)
 
 app = Application(title="InputLabel application")
 app.mainloop()
