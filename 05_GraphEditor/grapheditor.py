@@ -45,8 +45,8 @@ class App(Application):
         self.Write.grid(row=2, column=0)
         self.Q.grid(row=3, column=1)
 
-        self.Textwidg.tag_config("incorrect", foreground="red")
-        self.Textwidg.tag_config("correct", foreground="green")
+        self.Textwidg.tag_config("incorrect", background="red")
+        self.Textwidg.tag_config("correct", background="white")
 
         self.Canv.bind("<Button-1>", self.click_handler)
         self.Canv.bind("<Motion>", self.move_handler)
@@ -54,9 +54,6 @@ class App(Application):
 
     def click_handler(self, event):
         self.coords = [event.x, event.y] * 2
-        #print(self.coords)
-        #print(self.Canv.find_overlapping(*self.coords))
-        #print(self.cur_id)
         if len(self.Canv.find_overlapping(*self.coords)) == 0:
             self.cur_id = self.Canv.create_oval(*self.coords)
             self.newfig = True
@@ -75,19 +72,32 @@ class App(Application):
                 self.Canv.move(self.cur_id, event.x-self.coords[0], event.y-self.coords[1])
                 self.coords = [event.x, event.y] * 2
 
+    def write_info(self, fid):
+        index = self.ids.index(fid)
+        options = self.Canv.itemconfigure(fid)
+        coords = self.Canv.coords(fid)
+        filling, width, outline = options['fill'][-1], options['width'][-1], options['outline'][-1]
+        string = f"oval {coords[0]} {coords[1]} {coords[2]} {coords[3]} " \
+                 f"width='{width}' outline='{outline}' fill='{filling}'"
+        self.Textwidg.delete(str(index + 1) + ".0", str(index + 1) + ".0 lineend")
+        self.Textwidg.insert(str(index + 1) + ".0", string)
+        if len(self.Textwidg.get("1.0", tk.END).split("\n")) == index + 2:
+            self.Textwidg.insert(tk.END, "\n")
+
     def release_handler(self, event):
         if self.newfig:
             self.ids.append(self.cur_id)
-        index = self.ids.index(self.cur_id)
-        options = self.Canv.itemconfigure(self.cur_id)
-        coords = self.Canv.coords(self.cur_id)
-        filling, width, outline = options['fill'][-1], options['width'][-1], options['outline'][-1]
-        string = f"oval {coords[0]} {coords[1]} {coords[2]} {coords[3]} " \
-                        f"width='{width}' outline='{outline}' fill='{filling}'"
-        self.Textwidg.delete(str(index + 1) + ".0", str(index + 1) + ".0 lineend")
-        self.Textwidg.insert(str(index + 1) + ".0", string)
-        if self.newfig:
-            self.Textwidg.insert(tk.END, "\n")
+        #index = self.ids.index(self.cur_id)
+        #options = self.Canv.itemconfigure(self.cur_id)
+        #coords = self.Canv.coords(self.cur_id)
+        #filling, width, outline = options['fill'][-1], options['width'][-1], options['outline'][-1]
+        #string = f"oval {coords[0]} {coords[1]} {coords[2]} {coords[3]} " \
+        #                f"width='{width}' outline='{outline}' fill='{filling}'"
+        #self.Textwidg.delete(str(index + 1) + ".0", str(index + 1) + ".0 lineend")
+        #self.Textwidg.insert(str(index + 1) + ".0", string)
+        self.write_info(self.cur_id)
+        #if self.newfig:
+        #    self.Textwidg.insert(tk.END, "\n")
 
     def set_tag(self, tag_rem, tag_set, ind):
         self.Textwidg.tag_remove(tag_rem, str(ind + 1) + ".0", str(ind + 1) + ".0 lineend")
@@ -114,7 +124,9 @@ class App(Application):
         self.draw_shapes()
 
     def write_handler(self):
-        pass
+        self.Textwidg.delete('1.0', tk.END)
+        for i in self.ids:
+            self.write_info(i)
 
 app = App(title="Simple Graphic Editor")
 app.mainloop()
