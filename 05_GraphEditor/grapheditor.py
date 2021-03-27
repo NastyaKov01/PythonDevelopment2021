@@ -25,44 +25,50 @@ class App(Application):
     def create_widgets(self):
         super().create_widgets()
         self.Textwidg = tk.Text(self, padx=10, pady=10)
-        self.strings = [""]
-        self.shapes = ["oval", "rectangle", "line"]
-        self.cur_id = 0
-        self.coords = [0, 0, 0, 0]
-        self.newfig = False
+        self.shapes = ["oval", "rectangle"]
+        self.cur_id, self.coords = 0, [0, 0, 0, 0]
+        self.newfig, self.isoval = False, True
         self.ids = []
         self.Canv = tk.Canvas(self)
         self.Draw = tk.Button(self, text="DRAW", command=self.draw_handler)
         self.Write = tk.Button(self, text="WRITE", command=self.write_handler)
         self.Q = tk.Button(self, text="QUIT", command=self.master.quit)
 
+        self.Shape = tk.Label(self, text="shape")
         self.Width = tk.Label(self, text="width")
         self.Fill = tk.Label(self, text="fill")
         self.Outline = tk.Label(self, text="outline")
-        self.Woptlist = ['1', '2', '3', '4', '5']
-        self.Foptlist = ['green', 'blue', 'red', 'yellow']
-        self.Outlist = ['black', 'blue', 'red', 'green', 'yellow']
+        self.Woptlist = ['1.0', '2.0', '3.0', '4.0', '5.0']
+        self.Foptlist = ['green', 'blue', 'red', 'yellow', 
+                                'black', 'white', 'cyan', 'magenta']
+        self.Outlist = ['black', 'blue', 'red', 'green', 'yellow', 
+                                'white', 'cyan', 'magenta']
+        self.Shvar = tk.StringVar()
+        self.Shvar.set(self.shapes[0])
         self.Wvar = tk.StringVar()
         self.Wvar.set(self.Woptlist[0])
         self.Fvar = tk.StringVar()
         self.Fvar.set(self.Foptlist[0])
         self.Ovar = tk.StringVar()
         self.Ovar.set(self.Outlist[0])
+        self.Shmenu = tk.OptionMenu(self, self.Shvar, *self.shapes)
         self.Wmenu = tk.OptionMenu(self, self.Wvar, *self.Woptlist)
         self.Fmenu = tk.OptionMenu(self, self.Fvar, *self.Foptlist)
         self.Omenu = tk.OptionMenu(self, self.Ovar, *self.Outlist)
 
-        self.Width.grid(row=0, column=1, sticky="news")
-        self.Outline.grid(row=0, column=2, sticky="news")
-        self.Fill.grid(row=0, column=3, sticky="news")
-        self.Wmenu.grid(row=2, column=1, sticky="news")
-        self.Omenu.grid(row=2, column=2, sticky="news")
-        self.Fmenu.grid(row=2, column=3, sticky="news")
-        self.Textwidg.grid(row=3, column=0)
-        self.Canv.grid(row=3, column=1, columnspan=3, sticky="news")
-        self.Draw.grid(row=4, column=2)
-        self.Write.grid(row=4, column=0)
-        self.Q.grid(row=5, column=3)
+        self.Shape.grid(row=0, column=1, sticky="news")
+        self.Width.grid(row=0, column=2, sticky="news")
+        self.Outline.grid(row=0, column=3, sticky="news")
+        self.Fill.grid(row=0, column=4, sticky="news")
+        self.Shmenu.grid(row=1, column=1, sticky="news")
+        self.Wmenu.grid(row=1, column=2, sticky="news")
+        self.Omenu.grid(row=1, column=3, sticky="news")
+        self.Fmenu.grid(row=1, column=4, sticky="news")
+        self.Textwidg.grid(row=2, column=0)
+        self.Canv.grid(row=2, column=1, columnspan=4, sticky="news")
+        self.Draw.grid(row=3, column=2, columnspan=2)
+        self.Write.grid(row=3, column=0)
+        self.Q.grid(row=4, column=3)
 
         self.Textwidg.tag_config("incorrect", background="red")
         self.Textwidg.tag_config("correct", background="white")
@@ -83,14 +89,36 @@ class App(Application):
     def move_handler(self, event):
         if event.state == 0x0100:
             if self.newfig:
-                self.coords[2] = event.x
-                self.coords[3] = event.y
+                self.coords[2], self.coords[3] = event.x, event.y
                 self.Canv.delete(self.cur_id)
-                w, f, o = self.Wvar.get(), self.Fvar.get(), self.Ovar.get()
-                self.cur_id = self.Canv.create_oval(*self.coords, width=w, fill=f, outline=o)
+                s, w, f, o = self.Shvar.get(), self.Wvar.get(), self.Fvar.get(), self.Ovar.get()
+                if s == "oval":
+                    self.isoval = True
+                    self.cur_id = self.Canv.create_oval(*self.coords, width=w, fill=f, outline=o)
+                else:
+                    self.isoval = False
+                    self.cur_id = self.Canv.create_rectangle(*self.coords, width=w, fill=f, outline=o)
             else:
                 self.Canv.move(self.cur_id, event.x-self.coords[0], event.y-self.coords[1])
                 self.coords = [event.x, event.y] * 2
+    
+    def release_handler(self, event):
+        if self.newfig:
+            self.ids.append((self.cur_id, self.isoval))
+        coords = self.Canv.coords(self.cur_id)
+        s, w, f, o = self.Shvar.get(), self.Wvar.get(), self.Fvar.get(), self.Ovar.get()
+        for i, obj in enumerate(self.ids):
+            if obj[0] == self.cur_id:
+                index = i
+        self.Canv.delete(self.cur_id)
+        if s == "oval":
+            self.isoval = True
+            self.cur_id = self.Canv.create_oval(*coords, width=w, fill=f, outline=o)
+        else:
+            self.isoval = False
+            self.cur_id = self.Canv.create_rectangle(*coords, width=w, fill=f, outline=o)
+        self.ids[index] = (self.cur_id, self.isoval)
+        self.write_info((self.cur_id, self.isoval))
 
     def get_config(self, fid):
         options = self.Canv.itemconfigure(fid)
@@ -98,41 +126,38 @@ class App(Application):
         width, filling, outline = options['width'][-1], options['fill'][-1], options['outline'][-1]
         return width, filling, outline, coords
 
-    def write_info(self, fid):
-        index = self.ids.index(fid)
+    def write_info(self, obj):
+        index = self.ids.index(obj)
+        fid = obj[0]
         width, filling, outline, coords = self.get_config(fid)
-        string = f"oval {coords[0]} {coords[1]} {coords[2]} {coords[3]} " \
+        string = f" {coords[0]} {coords[1]} {coords[2]} {coords[3]} " \
                  f"width='{width}' outline='{outline}' fill='{filling}'"
         self.Textwidg.delete(str(index + 1) + ".0", str(index + 1) + ".0 lineend")
-        self.Textwidg.insert(str(index + 1) + ".0", string)
+        if self.ids[index][1]:
+            self.Textwidg.insert(str(index + 1) + ".0", "oval")
+        else:
+            self.Textwidg.insert(str(index + 1) + ".0", "rectangle")
+        self.Textwidg.insert(str(index + 1) + ".0 lineend", string)
         if len(self.Textwidg.get("1.0", tk.END).split("\n")) == index + 2:
             self.Textwidg.insert(tk.END, "\n")
-
-    def release_handler(self, event):
-        if self.newfig:
-            self.ids.append(self.cur_id)
-        width, filling, outline, coords = self.get_config(self.cur_id)
-        w, f, o = self.Wvar.get(), self.Fvar.get(), self.Ovar.get()
-        if int(w) != int(float(width)) or f != filling or o != outline:
-            index = self.ids.index(self.cur_id)
-            self.Canv.delete(self.cur_id)
-            self.cur_id = self.Canv.create_oval(*coords, width=w, fill=f, outline=o)
-            self.ids[index] = self.cur_id
-        self.write_info(self.cur_id)
-
+    
     def set_tag(self, tag_rem, tag_set, ind):
         self.Textwidg.tag_remove(tag_rem, str(ind + 1) + ".0", str(ind + 1) + ".0 lineend")
         self.Textwidg.tag_add(tag_set, str(ind + 1) + ".0", str(ind + 1) + ".0 lineend")
 
     def draw_shapes(self):
-        self.strings = self.Textwidg.get("1.0", tk.END).split("\n")
+        strings = self.Textwidg.get("1.0", tk.END).split("\n")
         self.ids.clear()
-        for i, s in enumerate(self.strings):
+        for i, s in enumerate(strings):
             words = s.split(" ")
             if words[0] in self.shapes:
                 try:
                     fid = eval(f"self.Canv.create_{words[0]}({','.join(words[1:])})")
-                    self.ids.append(fid)
+                    if words[0] == "oval":
+                        obj = (fid, True)
+                    else:
+                        obj = (fid, False)
+                    self.ids.append(obj)
                     self.set_tag("incorrect", "correct", i)
                 except:
                     self.set_tag("correct", "incorrect", i)
@@ -146,8 +171,8 @@ class App(Application):
 
     def write_handler(self):
         self.Textwidg.delete('1.0', tk.END)
-        for i in self.ids:
-            self.write_info(i)
+        for obj in self.ids:
+            self.write_info(obj)
 
 
 app = App(title="Simple Graphic Editor")
